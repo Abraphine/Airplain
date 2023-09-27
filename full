@@ -1,0 +1,352 @@
+# Name:         Abraphine Ngafaih
+# Class:        CSC 110 - Spring 2023
+# Assignment:   Airline Programming Project
+#Due:           05/2/ 2023
+
+                                                                                                 #if file is incorrect it countinues to prompt the user to input the correct file
+def openFile():
+    goodFile = False
+    while goodFile == False:
+        fname = input("Please enter a file name: ")
+        try:
+            dataFile = open(fname, 'r')
+            goodFile = True
+        except IOError:
+            print("Invalid file name try again ... ")
+    return dataFile
+
+                                                                                                 #reads information from file
+def getLists():
+    infile = openFile()
+    lines = infile.readlines()
+    infile.close()
+
+    airlines = []
+    flight_numbers = []
+    departure_times = []
+    arrival_times = []
+    prices = []
+
+    for line in lines:
+        line = line.strip()
+        flight_info = line.split(',')
+        airlines.append(flight_info[0])
+        flight_numbers.append(flight_info[1])
+        departure_times.append(flight_info[2])
+        arrival_times.append(flight_info[3])
+        price = float(flight_info[4].replace("$", ""))
+        prices.append(price)
+
+    return airlines, flight_numbers, departure_times, arrival_times, prices
+
+
+#Option 1
+def validate_inputinator (input_str, valid_options):                                                 #makes sure user input is valid
+    """
+    Validate the user input against a list of valid options
+    input_str: string: User input string to validate
+     valid_options: list: List of valid options to check against
+    :return: True if the input is valid, False otherwise
+    """
+    if input_str in valid_options:
+        return True
+    else:
+        return False
+    
+
+                                                                                  
+def specificFlightinator(airlines, flight_numbers, departure_times, arrival_times, prices):           #Asks user for airline name and number and makes sure the inputs match
+    airline = input("Enter airline name: ")
+    while not validate_inputinator(airline, airlines):
+        print("Invalid input -- try again ")
+        airline = input("Enter airline name: ")
+        
+    flight_number = input("Enter flight number: ")
+    while not validate_inputinator(flight_number, flight_numbers):
+        print("Invalid input -- try again ")
+        flight_number = input("Enter flight number: ")
+        
+    matching_airlines = ""
+    matching_flight_numbers = ""
+    matching_departure_times = ""
+    matching_arrival_times = ""
+    matching_prices = ""
+
+    for i in range(len(flight_numbers)): 
+        if airlines[i] == airline and flight_numbers[i] == flight_number:
+            matching_airlines = airlines[i]
+            matching_flight_numbers = flight_numbers[i]
+            matching_departure_times = departure_times[i]
+            matching_arrival_times = arrival_times[i]
+            matching_prices = prices[i]
+            break
+            
+
+    
+    return matching_airlines, matching_flight_numbers, matching_departure_times, matching_arrival_times, matching_prices
+      
+
+#Option 2                                                                                           
+def get_time_in_minutes(start_time, end_time):                                                              # Convert time into minutes
+    start_time_parts = start_time.split(':')
+    end_time_parts = end_time.split(':')
+    start_minutes = int(start_time_parts[0]) * 60 + int(start_time_parts[1])
+    end_minutes = int(end_time_parts[0]) * 60 + int(end_time_parts[1])
+    duration = end_minutes - start_minutes
+    if duration < 0:
+        duration += 24 * 60                                                                                     # add a day's worth of minutes if the end time is before the start time
+    return duration
+
+                                                                                                                 
+def shortestFlightinator(airlines, flight_numbers, departure_times, arrival_times, prices, duration):           # finds the shortest flights
+                                                                                                                 #it takes the inforamation and filters it by the duration of the flight (in minutes) and returns the shortests flights.
+    short_flights = []
+    
+    for i in range(len(flight_numbers)):
+        flight_duration = get_time_in_minutes(departure_times[i], arrival_times[i])
+        if flight_duration <= duration:
+            flight_info = [airlines[i], flight_numbers[i], departure_times[i], arrival_times[i], prices[i]]
+            short_flights.append(flight_info)
+            
+    return short_flights
+
+#Option3                                                                                                          # finds the flight information for the cheapest flight for the given airline.
+def cheapestFlightinator(airlines, flight_numbers, departure_times, arrival_times, prices, airline_name):
+    cheapest_price = float('inf')
+    cheapest_flight = None
+    for i in range(len(airlines)):
+        if airlines[i] == airline_name and prices[i] < cheapest_price:
+            cheapest_price = prices[i]
+            cheapest_flight = [airlines[i], flight_numbers[i], departure_times[i], arrival_times[i], prices[i]]
+    if cheapest_flight:
+        return cheapest_flight
+    else:
+        return None
+    
+#Option 4                                                                                                                    
+def convert_Min(time):                                                                                                  #converts hours to minutes
+    hour, minutes = time.split(':')
+    totalMins = int(hour) * 60 + int(minutes)
+    
+    return totalMins
+
+def checkLength(time):                                                                                               # checks length of string
+    OK = True
+    if len(time) != 5:
+        OK = False
+    return OK
+
+def get_min(depart_times):                                                                                           # makes sure input is valid and in HH:MM format
+    min_time = input("Enter earliest departure time: ")
+    
+    OK = False
+    while OK == False:
+        try:
+            inputTime = convert_Min(min_time)
+            OK = True
+        except ValueError:
+            min_time = input('Invalid time - Try again ')
+
+        if OK == True:
+            if checkLength(min_time) == False:
+                OK = False
+                min_time = input('Invalid time - Try again ')
+            
+    return inputTime
+                                                                                                                                # makes a list of indecies that are larger or equal to the input
+def departureTimeinator(airlines, flight_numbers, departure_times, arrival_times, prices, inputTime):
+    matching_flights = []
+    
+    for i in range(len(departure_times)):
+        dep_time = convert_Min(departure_times[i])
+        if dep_time >= inputTime:
+            matching_flights.append(i)
+    
+    return matching_flights
+
+#Option 5
+def averagePriceinator(prices):                                                                                                         #Returns the average price of the flights.
+
+    total_price = 0
+    for price in prices:
+        total_price += price
+    average_price = round((total_price / len(prices)),2)
+    return average_price
+
+def printAverage(average_price):
+    print("The average price is $ ", average_price)
+
+
+# Option 6
+def convert_Min(time):                                                                                                               #Converts in to minutes
+    hour, minutes = time.split(':')
+    totalMins = int(hour) * 60 + int(minutes)
+    
+    return totalMins
+
+def sortFlightinator(departure_times):                                                                                               #Sorts the flights by departure time and writes the sorted flights to a file.
+
+    newList = departure_times.copy()
+    index = []
+    newList1 = []
+    tempIndex = 0
+    
+    for i in range(len(newList)):
+        index.append(i)
+
+    for i in range(len(newList)):
+        departTime = convert_Min(newList[i])
+        newList1.append(departTime)
+    
+    for i in range(1, len(newList1)):
+        save = newList1[i]
+        tempIndex = index[i]
+        j = i
+        while j > 0 and newList1[j - 1] > save:
+                                                                                                                                            # comparison
+            newList1[j] = newList1[j - 1]
+            index[j] = index[j-1]
+            j = j - 1
+                                                                                                                                            # swap
+        newList1[j] = save
+        index[j] = tempIndex
+        
+    return index
+
+def writeOutFile(airlines, flight_numbers, departure_times, arrival_times, prices, index):               
+    fname = 'time-sorted-flights.csv'
+    outFile = open(fname, 'w')
+    for i in range(len(index)):
+        j = index[i]
+        outFile.write(airlines[j].ljust(8) + "," + flight_numbers[j].ljust(6) + ","  + departure_times[j].rjust(7) + "," + arrival_times[j].rjust(7) + "," + " $" + str(int(prices[j])).rjust(3) + '\n')
+
+    outFile.close()
+    return
+
+def print6():
+    print("")
+    print("Sorted data has been written to file: time-sorted-flights.csv")                                                                      #prints option 6
+
+
+                                                                                                                                                # this is the menu,it displays the choices and prompts the user to input their choices
+
+def print_menuinator():
+    print("Please choose one of the following options:")
+    print("1 -- Find flight information by airline and flight number")
+    print("2 -- Find flights shorter than a specified duration")
+    print("3 -- Find the cheapest flight by a given airline")
+    print("4 -- Find flight departing after a specified time")
+    print("5 -- Find the average price of all flights")
+    print("6 -- Write a file with flights sorted by departure time")
+    print("7 -- Quit")
+                                                                                                                                                    # it makes sure the user puts in a number and that its between 1 to 7
+
+def getChoice():
+    print_menuinator()
+    while True:
+       
+        choice = input('Choice ==>  ')
+        try:
+            choice = int(choice)
+            if choice < 1 or choice > 7:
+                print('Entry must be between 1 and 7')
+            else:
+                break
+        except ValueError:
+            print('Entry must be a number')
+    return choice
+
+
+                                                                                                                                                                    #prints the information for the flight
+def print_flight_info(airlines, flight_numbers, departure_times, arrival_times, prices):
+    print("{:<10} {:<10} {:<20} {:<20} {:<10}".format("AIRLINE", "FLT#", "DEPART", "ARRIVE", "PRICE"))
+    for i in range(len(flight_numbers)):
+        if isinstance(prices, float) and i == 0:
+            print("{:<10} {:<10} {:<20} {:<20} ${:.0f}".format(airlines, flight_numbers, departure_times, arrival_times, prices))
+        elif isinstance(prices, list) and isinstance(prices[i], float):
+            print("{:<10} {:<10} {:<20} {:<20} ${:.0f}".format(airlines[i], flight_numbers[i], departure_times[i], arrival_times[i], prices[i]))
+
+def print_flight_infos(airlines, flight_numbers, departure_times, arrival_times, prices, index):
+    if len(index) == 0:
+        print("")
+        print("No flights meet your criteria")
+    else:
+        print("The flights that meet your criteria are:")
+        print("{:<10} {:<10} {:<20} {:<20} {:<10}".format("AIRLINE", "FLT#", "DEPART", "ARRIVE", "PRICE"))
+        for i in range(len(index)):
+            if isinstance(prices, float) and i == 0:
+                print("{:<10} {:<10} {:<20} {:<20} ${:.0f}".format(airlines, flight_numbers, departure_times, arrival_times, prices))
+            elif isinstance(prices, list) and isinstance(prices[i], float):
+                print("{:<10} {:<10} {:<20} {:<20} ${:.0f}".format(airlines[index[i]], flight_numbers[index[i]], departure_times[index[i]], arrival_times[index[i]], prices[index[i]])) 
+
+
+                                                                                                                                                                # executes all function when user inputs choise
+def main():
+    airlines, flight_numbers, departure_times, arrival_times, prices = getLists()
+    choice = getChoice()
+
+    while choice != 7:
+        if choice == 1:
+            matching_airlines, matching_flight_numbers, matching_departure_times, matching_arrival_times, matching_prices = specificFlightinator(airlines, flight_numbers, departure_times, arrival_times, prices)
+            if matching_airlines:
+                print("The flight that meets your criteria is:")
+                print_flight_info(matching_airlines, matching_flight_numbers, matching_departure_times, matching_arrival_times, matching_prices)
+            choice = getChoice()
+
+        elif choice == 2:
+            valid_input = False
+            while not valid_input:
+                duration_str = input('Enter maximum duration (in minutes): ')
+                if duration_str.isdigit():
+                    duration = int(duration_str)
+                    valid_input = True
+                else:
+                    print('Entry must be a number')
+            
+            short_flights_list = shortestFlightinator(airlines, flight_numbers, departure_times, arrival_times, prices, duration)
+            if not short_flights_list:
+                print("No flights meet your criteria")
+            else:
+                print("The flights that meet your criteria are:")
+                print_flight_info([flight[0] for flight in short_flights_list], [flight[1] for flight in short_flights_list], [flight[2] for flight in short_flights_list], [flight[3] for flight in short_flights_list], [flight[4] for flight in short_flights_list])
+
+            choice = getChoice()
+
+
+        elif choice == 3:
+            airline = None
+            while airline not in airlines:
+                airline = input('Enter airline name: ')
+                if airline not in airlines:
+                    print('Invalid input -- try again')
+            
+            cheapest_flight_info = cheapestFlightinator(airlines, flight_numbers, departure_times, arrival_times, prices, airline)
+            if cheapest_flight_info:
+                print("The flight that meets your criteria is:")
+                print_flight_info([cheapest_flight_info[0]], [cheapest_flight_info[1]], [cheapest_flight_info[2]], [cheapest_flight_info[3]], [cheapest_flight_info[4]])
+            else:
+                print('No flights found for airline')
+            choice = getChoice()
+            
+        elif choice == 4:
+            inputTime = get_min(departure_times)
+            matching_flights = departureTimeinator(airlines, flight_numbers, departure_times, arrival_times, prices, inputTime)
+            print_flight_infos(airlines, flight_numbers, departure_times, arrival_times, prices, matching_flights)
+            print("")
+            choice = getChoice()
+
+        elif choice == 5:
+            average_price = averagePriceinator(prices)
+            printAverage(average_price)
+            choice = getChoice()
+            
+        elif choice == 6:
+            index = sortFlightinator(departure_times)
+            writeOutFile(airlines, flight_numbers, departure_times, arrival_times, prices, index)
+            print6()
+            print("")
+            choice = getChoice()
+       
+
+    print("")
+    print("Thank you for flying with us")
